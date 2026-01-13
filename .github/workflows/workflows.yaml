@@ -16,8 +16,8 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
       AWS_DEFAULT_REGION: us-east-1
-      TF_STATE_BUCKET: infra-terraform-test-bucket
-      TF_STATE_KEY: env/Test/terraform.tfstate
+      TF_STATE_BUCKET: infra-terraform-prod-bucket
+      TF_STATE_KEY: env/Prod/terraform.tfstate
       TF_STATE_REGION: us-east-1
       TF_IN_AUTOMATION: true
     steps:
@@ -43,22 +43,6 @@ jobs:
       - name: Show identity
         run: |
           aws sts get-caller-identity
-
-      - name: Check backend bucket
-        id: backend_bucket
-        run: |
-          if aws s3api head-bucket --bucket "$TF_STATE_BUCKET" 2>/dev/null; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Bootstrap S3 backend
-        if: steps.backend_bucket.outputs.exists == 'false'
-        working-directory: bootstrap
-        run: |
-          terraform init -input=false
-          terraform apply -auto-approve -input=false
 
       - name: Terraform Init (backend)
         run: |
